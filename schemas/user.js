@@ -2,7 +2,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var userSchema = new Schema({
-  area_id: String
+  name: String,
+  email: String
 });
 
 module.exports = userSchema;

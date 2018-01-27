@@ -3,9 +3,9 @@ const jwt = require('jsonwebtoken');
 
 const register = require('../functions/register');
 const login = require('../functions/login');
+
 const profile = require('../functions/profile');
 const password = require('../functions/password');
-const config = require('../config/config');
 const db = require('../util/db');
 
 module.exports = router => {
@@ -14,9 +14,7 @@ module.exports = router => {
     router.post('/authenticate', (req, res) => {
        const credentials = auth(req);
        if(credentials){
-
-         //DB CONNECT TEST CODE
-         db.connectDB().then( () => login.LoginUser(credentials.name, credentials.pass)
+         login.LoginUser(credentials.name, credentials.pass)
            .then(result => {
              const token = jwt.sign(result, config.secret, { expiresIn: 1440 });
              res.status(result.status).json({message : result.message, token : token});
@@ -24,11 +22,7 @@ module.exports = router => {
            })
            .catch(err => {
              res.status(err.status).json({message : err.message})
-           })
-         );
-
-
-
+           });
        }else{
            res.status(400).json({ message: 'Invalid Request !' });
        }
@@ -36,20 +30,25 @@ module.exports = router => {
 
     router.post('/users', (req, res) => {
         const name = req.body.name;
-        const email = req.body.email;
+        var email = req.body.email;
         const password = req.body.password;
 
         if(!name || !email || !password | !name.trim() || !email.trim() || !password.trim()){
             res.status(400).json({message: 'Invalid Request !'});
         }else{
-            register.RegisterUser(name, email, password)
+
+          db.connectDB().then( register.RegisterUser(name, email, password)
                 .then(result => {
+
+                  console.log('name->'+name);
+                  console.log('email->'+email);
                 res.setHeader('Location', '/users'+email);
                 res.status(result.status).json({message : result.message});
                 })
                 .catch(err => {
                     res.status(err.status).json({message : err.message});
-                });
+                })
+        );
         }
     });
 
@@ -103,20 +102,6 @@ module.exports = router => {
                 .catch(err => res.status(err.status).json({ message: err.message }));
         }
     });
-
-    function checkToken(req){
-        const token = req.headers['x-access-token'];
-        if(token){
-            try{
-                var decoded = jwt.verify(token, config.secret);
-                return decoded.message === req.params.email;
-            }catch(err){
-                return false;
-            }
-        }else{
-            return false;
-        }
-    }
 
 
 }
