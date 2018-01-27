@@ -6,6 +6,7 @@ const login = require('../functions/login');
 const profile = require('../functions/profile');
 const password = require('../functions/password');
 const config = require('../config/config');
+const db = require('../util/db');
 
 module.exports = router => {
     router.get('/', (req, res) => res.end('Welcome to Uniton Team 15!'));
@@ -13,15 +14,21 @@ module.exports = router => {
     router.post('/authenticate', (req, res) => {
        const credentials = auth(req);
        if(credentials){
-           login.LoginUser(credentials.name, credentials.pass)
-               .then(result => {
-                   const token = jwt.sign(result, config.secret, { expiresIn: 1440 });
-                   res.status(result.status).json({message : result.message, token : token});
 
-               })
-               .catch(err => {
-                   res.status(err.status).json({message : err.message})
-               });
+         //DB CONNECT TEST CODE
+         db.connectDB().then( () => login.LoginUser(credentials.name, credentials.pass)
+           .then(result => {
+             const token = jwt.sign(result, config.secret, { expiresIn: 1440 });
+             res.status(result.status).json({message : result.message, token : token});
+
+           })
+           .catch(err => {
+             res.status(err.status).json({message : err.message})
+           })
+         );
+
+
+
        }else{
            res.status(400).json({ message: 'Invalid Request !' });
        }

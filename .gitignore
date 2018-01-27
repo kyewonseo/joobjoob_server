@@ -139,5 +139,9 @@ fabric.properties
 
 #config.json
 config/
+config.json
+
+#dist
+/dist
 
 # End of https://www.gitignore.io/api/node,webstorm
